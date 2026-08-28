@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { SpaceBackground, getTimePhase, TimePhase } from './SpaceBackground';
+import { SpaceBackground, getTimePhase, type TimePhase } from './SpaceBackground';
+
 
 const DAY_SECONDS = 24 * 60 * 60; // 86,400 seconds in 24 hours
 
