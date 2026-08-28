@@ -299,3 +299,56 @@ body {
 .animate-ambient-glow {
   animation: ambient-glow 120s linear infinite;
 }
+
+/* ═══════════════════════════════════════════
+   9 AM ANIMATION EFFECTS
+   ═══════════════════════════════════════════ */
+@keyframes trigger-pulse {
+  0% {
+    transform: scale(0.8);
+    filter: brightness(0.3) blur(12px);
+    opacity: 0.2;
+  }
+  40% {
+    transform: scale(1.15);
+    filter: brightness(2.2) drop-shadow(0 0 60px rgba(56, 189, 248, 0.95)) drop-shadow(0 0 100px rgba(168, 85, 247, 0.8));
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1) drop-shadow(0 0 25px rgba(255, 255, 255, 0.5));
+    opacity: 1;
+  }
+}
+
+@keyframes cosmic-shockwave {
+  0% {
+    transform: scale(0.3);
+    opacity: 1;
+    border-width: 4px;
+    border-color: rgba(56, 189, 248, 0.9);
+    box-shadow: 0 0 40px rgba(56, 189, 248, 0.8);
+  }
+  100% {
+    transform: scale(2.8);
+    opacity: 0;
+    border-width: 1px;
+    border-color: rgba(168, 85, 247, 0);
+    box-shadow: 0 0 0px rgba(168, 85, 247, 0);
+  }
+}
+
+.animate-nine-start {
+  animation: trigger-pulse 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.shockwave-ring {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  border: 3px solid rgba(56, 189, 248, 0.8);
+  pointer-events: none;
+  animation: cosmic-shockwave 1.8s ease-out forwards;
+}
+
