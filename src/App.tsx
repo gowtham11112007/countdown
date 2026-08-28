@@ -1,16 +1,27 @@
 import { useState, useEffect } from 'react';
 import { SpaceBackground, getTimePhase, TimePhase } from './SpaceBackground';
 
-// Anchor Date: 18th August 2026 at 08:00:00 AM local time
-const ANCHOR_START = new Date(2026, 7, 18, 8, 0, 0); // Month 7 = August in JS Date
 const DAY_SECONDS = 24 * 60 * 60; // 86,400 seconds in 24 hours
+
+/**
+ * Returns the Date object representing the start of the current 24-hour cycle (8:00 AM).
+ * If current local time is before 8:00 AM (e.g. 07:30 AM), the current cycle started at 8:00 AM yesterday.
+ */
+function getCurrentCycleStart(now: Date = new Date()): Date {
+  const start = new Date(now);
+  start.setHours(8, 0, 0, 0); // 8:00:00 AM today
+  if (now.getTime() < start.getTime()) {
+    start.setDate(start.getDate() - 1); // 8:00:00 AM yesterday
+  }
+  return start;
+}
 
 function App() {
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
   const [remainingSeconds, setRemainingSeconds] = useState<number>(DAY_SECONDS);
   const [currentPhase, setCurrentPhase] = useState<TimePhase>(() => getTimePhase().phase);
 
-  // Trigger cosmic shockwave animation
+  // Trigger cosmic shockwave pulse animation
   const triggerPulseAnimation = () => {
     setIsAnimating(true);
     setTimeout(() => {
@@ -21,22 +32,17 @@ function App() {
   useEffect(() => {
     const updateSyncTimer = () => {
       const now = new Date();
+      
+      // Update Day/Night time-of-day phase
       const phaseData = getTimePhase(now);
       setCurrentPhase(phaseData.phase);
 
-      const totalElapsedSecs = Math.floor((now.getTime() - ANCHOR_START.getTime()) / 1000);
+      // Current 8:00 AM cycle start
+      const cycleStart = getCurrentCycleStart(now);
+      const elapsedInCycle = Math.floor((now.getTime() - cycleStart.getTime()) / 1000);
+      const remaining = Math.max(0, DAY_SECONDS - elapsedInCycle);
 
-      if (totalElapsedSecs < 0) {
-        // If current time is prior to Aug 18 8:00 AM
-        setRemainingSeconds(DAY_SECONDS);
-        return;
-      }
-
-      // Elapsed seconds in current 24-hour cycle (0..86399)
-      const elapsedInCycle = totalElapsedSecs % DAY_SECONDS;
-      const remaining = DAY_SECONDS - elapsedInCycle;
-
-      // Trigger animation at 8:00:00 AM cycle start
+      // Trigger animation at 8:00:00 AM boundary
       if (elapsedInCycle === 0) {
         triggerPulseAnimation();
       }
@@ -50,20 +56,20 @@ function App() {
   }, []);
 
   // Format hours, minutes, seconds zero-padded
-  const hStr = Math.floor(remainingSeconds / 3600).toString().padStart(2, '0');
-  const mStr = Math.floor((remainingSeconds % 3600) / 60).toString().padStart(2, '0');
-  const sStr = (displaySecs() % 60).toString().padStart(2, '0');
+  const h = Math.floor(remainingSeconds / 3600);
+  const m = Math.floor((remainingSeconds % 3600) / 60);
+  const s = Math.floor(remainingSeconds % 60);
 
-  function displaySecs() {
-    return remainingSeconds;
-  }
+  const hStr = h.toString().padStart(2, '0');
+  const mStr = m.toString().padStart(2, '0');
+  const sStr = s.toString().padStart(2, '0');
 
   // Dynamic glow styles matching real-world day/night phase
   const phaseGlows: Record<TimePhase, string> = {
-    day: 'drop-shadow-[0_0_35px_rgba(56,189,248,0.75)] drop-shadow-[0_0_80px_rgba(251,191,36,0.3)] text-sky-100',
-    sunset: 'drop-shadow-[0_0_35px_rgba(249,115,22,0.85)] drop-shadow-[0_0_80px_rgba(217,70,239,0.4)] text-amber-100',
-    night: 'drop-shadow-[0_0_35px_rgba(168,85,247,0.75)] drop-shadow-[0_0_80px_rgba(99,102,241,0.35)] text-indigo-100',
-    dawn: 'drop-shadow-[0_0_35px_rgba(244,114,182,0.8)] drop-shadow-[0_0_80px_rgba(56,189,248,0.35)] text-rose-100'
+    day: 'drop-shadow-[0_0_35px_rgba(56,189,248,0.8)] drop-shadow-[0_0_80px_rgba(251,191,36,0.35)] text-sky-100',
+    sunset: 'drop-shadow-[0_0_35px_rgba(249,115,22,0.85)] drop-shadow-[0_0_80px_rgba(217,70,239,0.45)] text-amber-100',
+    night: 'drop-shadow-[0_0_35px_rgba(168,85,247,0.8)] drop-shadow-[0_0_80px_rgba(99,102,241,0.4)] text-indigo-100',
+    dawn: 'drop-shadow-[0_0_35px_rgba(244,114,182,0.85)] drop-shadow-[0_0_80px_rgba(56,189,248,0.4)] text-rose-100'
   };
 
   const glowStyle = phaseGlows[currentPhase];
@@ -72,7 +78,7 @@ function App() {
     <div 
       onClick={() => triggerPulseAnimation()}
       className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0a] text-white selection:bg-white/10 font-sans relative overflow-hidden select-none cursor-pointer"
-      title="Click to trigger cosmic shockwave animation"
+      title="Click to trigger cosmic pulse animation"
     >
       {/* Space Theme Background synced with real-world Day/Night cycle */}
       <SpaceBackground currentPhase={currentPhase} />
