@@ -12,7 +12,7 @@ export function useAudioAnalyser() {
 
   const ctxRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
-  const bufRef = useRef<Uint8Array | null>(null);
+  const bufRef = useRef<Uint8Array<ArrayBuffer> | null>(null);
   const rafRef = useRef(0);
 
   // Adaptive peak tracking — slowly decays so quiet passages still register
