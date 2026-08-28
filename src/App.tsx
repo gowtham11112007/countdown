@@ -4,54 +4,70 @@ import { SpaceBackground } from './SpaceBackground';
 function App() {
   const [hasStarted, setHasStarted] = useState<boolean>(false);
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
-  const [seconds, setSeconds] = useState<number>(0);
+  const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
 
-  // Trigger function for 9 AM start animation
-  const trigger9AMStart = () => {
+  // Helper to get today's 8:00 AM Date object
+  const getToday8AM = () => {
+    const now = new Date();
+    const t8 = new Date(now);
+    t8.setHours(8, 0, 0, 0);
+    return t8;
+  };
+
+  // Trigger function for 8 AM start animation
+  const trigger8AMStart = () => {
     setHasStarted(true);
     setIsAnimating(true);
-    // Start at 9 hours (09:00:00)
-    setSeconds(9 * 3600);
+    const now = new Date();
+    const t8 = getToday8AM();
+    const diff = Math.max(0, Math.floor((now.getTime() - t8.getTime()) / 1000));
+    setElapsedSeconds(diff);
     setTimeout(() => {
       setIsAnimating(false);
     }, 2000);
   };
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    const checkAndTick = () => {
       const now = new Date();
       const h = now.getHours();
 
-      if (!hasStarted) {
-        // Auto start if current time is 9 AM or later today
-        if (h >= 9) {
-          trigger9AMStart();
+      // Check if 8 AM has passed today
+      if (h >= 8) {
+        if (!hasStarted) {
+          setHasStarted(true);
+          setIsAnimating(true);
+          setTimeout(() => setIsAnimating(false), 2000);
         }
+        const diff = Math.max(0, Math.floor((now.getTime() - getToday8AM().getTime()) / 1000));
+        setElapsedSeconds(diff);
       } else {
-        // Tick timer after 9 AM start
-        setSeconds((prev) => prev + 1);
+        setHasStarted(false);
+        setElapsedSeconds(0);
       }
-    }, 1000);
+    };
 
+    checkAndTick();
+    const interval = setInterval(checkAndTick, 1000);
     return () => clearInterval(interval);
   }, [hasStarted]);
 
   // Format hours, minutes, seconds zero-padded
-  const displaySecs = hasStarted ? seconds : 0;
+  const displaySecs = hasStarted ? elapsedSeconds : 0;
   const hStr = Math.floor(displaySecs / 3600).toString().padStart(2, '0');
   const mStr = Math.floor((displaySecs % 3600) / 60).toString().padStart(2, '0');
   const sStr = (displaySecs % 60).toString().padStart(2, '0');
 
   return (
     <div 
-      onClick={() => { if (!hasStarted) trigger9AMStart(); }}
+      onClick={() => trigger8AMStart()}
       className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0a] text-white selection:bg-white/10 font-sans relative overflow-hidden select-none cursor-pointer"
-      title={!hasStarted ? "Click to trigger 9 AM start animation" : ""}
+      title="Click to trigger 8 AM start animation"
     >
       {/* Space Theme Background */}
       <SpaceBackground />
 
-      {/* Cosmic shockwave ring on 9 AM start */}
+      {/* Cosmic shockwave ring on 8 AM start */}
       {isAnimating && <div className="shockwave-ring z-10" />}
 
       {/* Main Timer Display - Pure numbers */}
@@ -88,3 +104,4 @@ function Separator() {
 }
 
 export default App;
+
