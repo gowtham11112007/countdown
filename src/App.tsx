@@ -87,13 +87,22 @@ function App() {
       {/* Cosmic shockwave ring */}
       {isAnimating && <div className="shockwave-ring z-10" />}
 
-      {/* Main Timer Display - Synced 24h Countdown with Day/Night visual aura */}
-      <div className={`relative z-10 flex items-center justify-center gap-2 md:gap-6 tabular-nums transition-all duration-1000 ${isAnimating ? 'animate-nine-start' : ''}`}>
-        <TimeBlock value={hStr} label="HOURS" glowClass={glowStyle} />
-        <Separator glowClass={glowStyle} />
-        <TimeBlock value={mStr} label="MINUTES" glowClass={glowStyle} />
-        <Separator glowClass={glowStyle} />
-        <TimeBlock value={sStr} label="SECONDS" glowClass={glowStyle} />
+      {/* Container for Title and Timer */}
+      <div className="relative z-10 flex flex-col items-center justify-center space-y-12 md:space-y-20 w-full px-4">
+        
+        {/* Hackathon Title - Tech Sangamam 2026 */}
+        <h1 className="text-4xl md:text-5xl lg:text-7xl font-orbitron font-bold tracking-widest text-white uppercase z-20 text-center leading-tight drop-shadow-[0_4px_12px_rgba(0,10,40,0.3)]">
+          TECH SANGAMAM <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-blue-400">2026</span>
+        </h1>
+
+        {/* Main Timer Display - Synced 24h Countdown with Day/Night visual aura */}
+        <div className={`flex items-center justify-center gap-2 md:gap-6 tabular-nums transition-all duration-1000 ${isAnimating ? 'animate-nine-start' : ''}`}>
+          <TimeBlock value={hStr} label="HOURS" glowClass={glowStyle} />
+          <Separator glowClass={glowStyle} />
+          <TimeBlock value={mStr} label="MINUTES" glowClass={glowStyle} />
+          <Separator glowClass={glowStyle} />
+          <TimeBlock value={sStr} label="SECONDS" glowClass={glowStyle} />
+        </div>
       </div>
     </div>
   );
