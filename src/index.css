@@ -352,3 +352,17 @@ body {
   animation: cosmic-shockwave 1.8s ease-out forwards;
 }
 
+/* ═══════════════════════════════════════════
+   AUDIO REACTIVITY
+   CSS custom properties written by
+   useAudioAnalyser.ts at 60 fps.
+   Speed of clouds and particles is controlled
+   via Web Animations API playbackRate in JS.
+   ═══════════════════════════════════════════ */
+:root {
+  --audio-bass: 0;
+  --audio-mid: 0;
+  --audio-treble: 0;
+  --audio-volume: 0;
+}
+

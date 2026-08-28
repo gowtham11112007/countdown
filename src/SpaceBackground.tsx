@@ -46,7 +46,7 @@ function getSkyOpacities(h: number) {
 /* ── Premium Tech Particles ── */
 const TechParticle = ({ speed, size, x, delay, color }: any) => (
   <div 
-    className="absolute pointer-events-none mix-blend-screen will-change-transform rounded-sm"
+    className="absolute pointer-events-none mix-blend-screen will-change-transform rounded-sm audio-particle"
     style={{
       left: `${x}%`,
       bottom: '-5%',
@@ -63,7 +63,7 @@ const TechParticle = ({ speed, size, x, delay, color }: any) => (
 /* ── Rich Atmospheric Components ── */
 const Cloud = ({ speed, size, top, delay, opacityMultiplier = 1 }: any) => (
   <div 
-    className="absolute left-0 will-change-transform"
+    className="absolute left-0 will-change-transform audio-cloud"
     style={{
       top: `${top}%`,
       opacity: opacityMultiplier,

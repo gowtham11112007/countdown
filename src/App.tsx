@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { SpaceBackground } from './SpaceBackground';
+import { useAudioAnalyser } from './useAudioAnalyser';
 
 /**
  * Returns the Date object representing the target end time (8:00 AM tomorrow).
@@ -21,13 +22,31 @@ function App() {
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
   const [remainingSeconds, setRemainingSeconds] = useState<number>(0);
 
-  // Trigger cosmic shockwave pulse animation
+  // Trigger cosmic shockwave pulse animation (only when timer completes)
   const triggerPulseAnimation = () => {
     setIsAnimating(true);
     setTimeout(() => {
       setIsAnimating(false);
     }, 2000);
   };
+
+  // Audio reactivity — mic captures ambient music, drives CSS custom properties for clouds
+  const { isActive: audioActive, initAudio } = useAudioAnalyser();
+
+  // Listen for initial user gesture to enable mic audio seamlessly
+  useEffect(() => {
+    const handleGesture = () => {
+      if (!audioActive) {
+        initAudio();
+      }
+    };
+    window.addEventListener('click', handleGesture, { once: true });
+    window.addEventListener('touchstart', handleGesture, { once: true });
+    return () => {
+      window.removeEventListener('click', handleGesture);
+      window.removeEventListener('touchstart', handleGesture);
+    };
+  }, [audioActive, initAudio]);
 
   useEffect(() => {
     const updateSyncTimer = () => {
@@ -59,9 +78,7 @@ function App() {
 
   return (
     <div 
-      onClick={() => triggerPulseAnimation()}
-      className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0a] text-white selection:bg-white/10 font-sans relative overflow-hidden select-none cursor-pointer py-12 px-4"
-      title="Click to trigger cosmic pulse animation"
+      className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0a] text-white selection:bg-white/10 font-sans relative overflow-hidden select-none py-12 px-4"
     >
       {/* Space Theme Background */}
       <SpaceBackground />
