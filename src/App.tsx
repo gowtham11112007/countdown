@@ -1,26 +1,25 @@
 import { useState, useEffect } from 'react';
-import { SpaceBackground, getTimePhase, type TimePhase } from './SpaceBackground';
-
-
-const DAY_SECONDS = 24 * 60 * 60; // 86,400 seconds in 24 hours
+import { SpaceBackground } from './SpaceBackground';
 
 /**
- * Returns the Date object representing the start of the current 24-hour cycle (8:00 AM).
- * If current local time is before 8:00 AM (e.g. 07:30 AM), the current cycle started at 8:00 AM yesterday.
+ * Returns the Date object representing the target end time (8:00 AM tomorrow).
+ * If current time is past 8:00 AM today, target is 8:00 AM tomorrow.
  */
-function getCurrentCycleStart(now: Date = new Date()): Date {
-  const start = new Date(now);
-  start.setHours(8, 0, 0, 0); // 8:00:00 AM today
-  if (now.getTime() < start.getTime()) {
-    start.setDate(start.getDate() - 1); // 8:00:00 AM yesterday
+function getTarget8AM(now: Date = new Date()): Date {
+  const target = new Date(now);
+  target.setHours(8, 0, 0, 0); // 8:00:00 AM
+  
+  // If current time is past today's 8:00 AM, target 8:00 AM tomorrow
+  if (now.getTime() >= target.getTime()) {
+    target.setDate(target.getDate() + 1);
   }
-  return start;
+  
+  return target;
 }
 
 function App() {
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
-  const [remainingSeconds, setRemainingSeconds] = useState<number>(DAY_SECONDS);
-  const [currentPhase, setCurrentPhase] = useState<TimePhase>(() => getTimePhase().phase);
+  const [remainingSeconds, setRemainingSeconds] = useState<number>(0);
 
   // Trigger cosmic shockwave pulse animation
   const triggerPulseAnimation = () => {
@@ -33,18 +32,11 @@ function App() {
   useEffect(() => {
     const updateSyncTimer = () => {
       const now = new Date();
-      
-      // Update Day/Night time-of-day phase
-      const phaseData = getTimePhase(now);
-      setCurrentPhase(phaseData.phase);
+      const target = getTarget8AM(now);
+      const remaining = Math.max(0, Math.floor((target.getTime() - now.getTime()) / 1000));
 
-      // Current 8:00 AM cycle start
-      const cycleStart = getCurrentCycleStart(now);
-      const elapsedInCycle = Math.floor((now.getTime() - cycleStart.getTime()) / 1000);
-      const remaining = Math.max(0, DAY_SECONDS - elapsedInCycle);
-
-      // Trigger animation at 8:00:00 AM boundary
-      if (elapsedInCycle === 0) {
+      // Trigger animation when target 8:00 AM is reached
+      if (remaining === 0) {
         triggerPulseAnimation();
       }
 
@@ -65,53 +57,43 @@ function App() {
   const mStr = m.toString().padStart(2, '0');
   const sStr = s.toString().padStart(2, '0');
 
-  // Dynamic glow styles matching real-world day/night phase
-  const phaseGlows: Record<TimePhase, string> = {
-    day: 'drop-shadow-[0_0_35px_rgba(56,189,248,0.8)] drop-shadow-[0_0_80px_rgba(251,191,36,0.35)] text-sky-100',
-    sunset: 'drop-shadow-[0_0_35px_rgba(249,115,22,0.85)] drop-shadow-[0_0_80px_rgba(217,70,239,0.45)] text-amber-100',
-    night: 'drop-shadow-[0_0_35px_rgba(168,85,247,0.8)] drop-shadow-[0_0_80px_rgba(99,102,241,0.4)] text-indigo-100',
-    dawn: 'drop-shadow-[0_0_35px_rgba(244,114,182,0.85)] drop-shadow-[0_0_80px_rgba(56,189,248,0.4)] text-rose-100'
-  };
-
-  const glowStyle = phaseGlows[currentPhase];
-
   return (
     <div 
       onClick={() => triggerPulseAnimation()}
-      className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0a] text-white selection:bg-white/10 font-sans relative overflow-hidden select-none cursor-pointer"
+      className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0a] text-white selection:bg-white/10 font-sans relative overflow-hidden select-none cursor-pointer py-12 px-4"
       title="Click to trigger cosmic pulse animation"
     >
-      {/* Space Theme Background synced with real-world Day/Night cycle */}
-      <SpaceBackground currentPhase={currentPhase} />
+      {/* Space Theme Background */}
+      <SpaceBackground />
 
       {/* Cosmic shockwave ring */}
       {isAnimating && <div className="shockwave-ring z-10" />}
 
-      {/* Container for Title and Timer */}
-      <div className="relative z-10 flex flex-col items-center justify-center space-y-12 md:space-y-20 w-full px-4">
-        
-        {/* Hackathon Title - Tech Sangamam 2026 */}
-        <h1 className="text-4xl md:text-5xl lg:text-7xl font-orbitron font-bold tracking-widest text-white uppercase z-20 text-center leading-tight drop-shadow-[0_4px_12px_rgba(0,10,40,0.3)]">
-          TECH SANGAMAM <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-blue-400">2026</span>
+      {/* Futuristic Header Title */}
+      <header className="relative z-10 mb-8 md:mb-14 text-center">
+        <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-wider uppercase font-sans drop-shadow-[0_0_40px_rgba(56,189,248,0.4)]">
+          <span className="bg-gradient-to-r from-sky-300 via-purple-500 to-cyan-400 bg-clip-text text-transparent">
+            TECH SANGAMAM 2026
+          </span>
         </h1>
+      </header>
 
-        {/* Main Timer Display - Synced 24h Countdown with Day/Night visual aura */}
-        <div className={`flex items-center justify-center gap-2 md:gap-6 tabular-nums transition-all duration-1000 ${isAnimating ? 'animate-nine-start' : ''}`}>
-          <TimeBlock value={hStr} label="HOURS" glowClass={glowStyle} />
-          <Separator glowClass={glowStyle} />
-          <TimeBlock value={mStr} label="MINUTES" glowClass={glowStyle} />
-          <Separator glowClass={glowStyle} />
-          <TimeBlock value={sStr} label="SECONDS" glowClass={glowStyle} />
-        </div>
+      {/* Main Timer Display - Synced Countdown to 8:00 AM tomorrow */}
+      <div className={`relative z-10 flex items-center justify-center gap-2 md:gap-6 tabular-nums transition-all duration-1000 ${isAnimating ? 'animate-nine-start' : ''}`}>
+        <TimeBlock value={hStr} label="HOURS" />
+        <Separator />
+        <TimeBlock value={mStr} label="MINUTES" />
+        <Separator />
+        <TimeBlock value={sStr} label="SECONDS" />
       </div>
     </div>
   );
 }
 
-function TimeBlock({ value, label, glowClass }: { value: string, label: string, glowClass: string }) {
+function TimeBlock({ value, label }: { value: string, label: string }) {
   return (
     <div className="flex flex-col items-center relative">
-      <div className={`flex justify-center min-w-[1.4em] font-orbitron font-bold tabular-nums text-[7rem] md:text-[12rem] lg:text-[16rem] leading-none tracking-tight transition-all duration-1000 ${glowClass}`}>
+      <div className="flex justify-center min-w-[1.4em] font-orbitron font-bold tabular-nums text-[6rem] sm:text-[9rem] md:text-[11rem] lg:text-[14rem] leading-none tracking-tight text-white drop-shadow-[0_0_35px_rgba(56,189,248,0.7)] drop-shadow-[0_0_80px_rgba(168,85,247,0.35)] transition-all duration-1000">
         {value}
       </div>
       <div className="absolute top-full mt-2 md:mt-6 text-[10px] md:text-sm font-semibold tracking-[0.4em] text-white/40 uppercase font-sans">
@@ -121,9 +103,9 @@ function TimeBlock({ value, label, glowClass }: { value: string, label: string, 
   );
 }
 
-function Separator({ glowClass }: { glowClass: string }) {
+function Separator() {
   return (
-    <div className={`text-[7rem] md:text-[12rem] lg:text-[16rem] font-orbitron font-bold leading-none -translate-y-2 md:-translate-y-6 transition-all duration-1000 ${glowClass}`}>
+    <div className="text-[6rem] sm:text-[9rem] md:text-[11rem] lg:text-[14rem] font-orbitron font-bold leading-none -translate-y-2 md:-translate-y-6 text-white drop-shadow-[0_0_35px_rgba(56,189,248,0.7)] drop-shadow-[0_0_80px_rgba(168,85,247,0.35)] transition-all duration-1000">
       :
     </div>
   );
