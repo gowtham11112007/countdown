@@ -1,76 +1,68 @@
 import { useState, useEffect } from 'react';
 import { SpaceBackground } from './SpaceBackground';
 
+// Anchor Date: 18th August 2026 at 08:00:00 AM local time
+const ANCHOR_START = new Date(2026, 7, 18, 8, 0, 0); // Month 7 = August in JS Date
+const DAY_SECONDS = 24 * 60 * 60; // 86,400 seconds in 24 hours
+
 function App() {
-  const [hasStarted, setHasStarted] = useState<boolean>(false);
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
-  const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
+  const [remainingSeconds, setRemainingSeconds] = useState<number>(DAY_SECONDS);
 
-  // Helper to get today's 8:00 AM Date object
-  const getToday8AM = () => {
-    const now = new Date();
-    const t8 = new Date(now);
-    t8.setHours(8, 0, 0, 0);
-    return t8;
-  };
-
-  // Trigger function for 8 AM start animation
-  const trigger8AMStart = () => {
-    setHasStarted(true);
+  // Trigger cosmic shockwave animation
+  const triggerPulseAnimation = () => {
     setIsAnimating(true);
-    const now = new Date();
-    const t8 = getToday8AM();
-    const diff = Math.max(0, Math.floor((now.getTime() - t8.getTime()) / 1000));
-    setElapsedSeconds(diff);
     setTimeout(() => {
       setIsAnimating(false);
     }, 2000);
   };
 
   useEffect(() => {
-    const checkAndTick = () => {
+    const updateSyncTimer = () => {
       const now = new Date();
-      const h = now.getHours();
+      const totalElapsedSecs = Math.floor((now.getTime() - ANCHOR_START.getTime()) / 1000);
 
-      // Check if 8 AM has passed today
-      if (h >= 8) {
-        if (!hasStarted) {
-          setHasStarted(true);
-          setIsAnimating(true);
-          setTimeout(() => setIsAnimating(false), 2000);
-        }
-        const diff = Math.max(0, Math.floor((now.getTime() - getToday8AM().getTime()) / 1000));
-        setElapsedSeconds(diff);
-      } else {
-        setHasStarted(false);
-        setElapsedSeconds(0);
+      if (totalElapsedSecs < 0) {
+        // If current time is prior to Aug 18 8:00 AM
+        setRemainingSeconds(DAY_SECONDS);
+        return;
       }
+
+      // Elapsed seconds in current 24-hour cycle (0..86399)
+      const elapsedInCycle = totalElapsedSecs % DAY_SECONDS;
+      const remaining = DAY_SECONDS - elapsedInCycle;
+
+      // Trigger animation at 8:00:00 AM cycle start
+      if (elapsedInCycle === 0) {
+        triggerPulseAnimation();
+      }
+
+      setRemainingSeconds(remaining);
     };
 
-    checkAndTick();
-    const interval = setInterval(checkAndTick, 1000);
+    updateSyncTimer();
+    const interval = setInterval(updateSyncTimer, 1000);
     return () => clearInterval(interval);
-  }, [hasStarted]);
+  }, []);
 
   // Format hours, minutes, seconds zero-padded
-  const displaySecs = hasStarted ? elapsedSeconds : 0;
-  const hStr = Math.floor(displaySecs / 3600).toString().padStart(2, '0');
-  const mStr = Math.floor((displaySecs % 3600) / 60).toString().padStart(2, '0');
-  const sStr = (displaySecs % 60).toString().padStart(2, '0');
+  const hStr = Math.floor(remainingSeconds / 3600).toString().padStart(2, '0');
+  const mStr = Math.floor((remainingSeconds % 3600) / 60).toString().padStart(2, '0');
+  const sStr = (remainingSeconds % 60).toString().padStart(2, '0');
 
   return (
     <div 
-      onClick={() => trigger8AMStart()}
+      onClick={() => triggerPulseAnimation()}
       className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0a] text-white selection:bg-white/10 font-sans relative overflow-hidden select-none cursor-pointer"
-      title="Click to trigger 8 AM start animation"
+      title="Click to trigger cosmic shockwave animation"
     >
       {/* Space Theme Background */}
       <SpaceBackground />
 
-      {/* Cosmic shockwave ring on 8 AM start */}
+      {/* Cosmic shockwave ring */}
       {isAnimating && <div className="shockwave-ring z-10" />}
 
-      {/* Main Timer Display - Pure numbers */}
+      {/* Main Timer Display - Synced 24h Countdown */}
       <div className={`relative z-10 flex items-center justify-center gap-2 md:gap-6 tabular-nums ${isAnimating ? 'animate-nine-start' : ''}`}>
         <TimeBlock value={hStr} label="HOURS" />
         <Separator />
@@ -104,4 +96,3 @@ function Separator() {
 }
 
 export default App;
-
